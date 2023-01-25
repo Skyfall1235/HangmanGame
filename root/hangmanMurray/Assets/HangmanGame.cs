@@ -1,3 +1,11 @@
+//////////////////////////////////////////////
+//Assignment/Lab/Project: Hangman Game
+//Name: Wyatt Murray
+//Section: 2023SP.SGD.213.2172
+//Instructor: BryanSowers
+//Date: 1/24/2023
+/////////////////////////////////////////////
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,27 +13,29 @@ using System.IO;
 using System;
 using TMPro;
 using UnityEngine.UI;
-using Newtonsoft.Json.Linq;
+
 
 public class HangmanGame : MonoBehaviour
 {
-    private string wordFromFile;
+    #region variables
     [SerializeField] private TextMeshProUGUI textDisplay;
     [SerializeField] private TextMeshProUGUI playerGuesses;
     [SerializeField] private TextMeshProUGUI usedLetters;
-    private string guessedLetters;
-    private string[] blankArray;
+    
     private List <string> failedLetters = new List<string>();
     [SerializeField] private GameObject[] gamePanels = new GameObject[2];
     [SerializeField] private Button[] ConditionalButtons;
-    [SerializeField] private TextMeshProUGUI[] Counters = new TextMeshProUGUI[2];
-    private int chosenWordLength = 1;
+    [SerializeField] private TextMeshProUGUI playerGuessCounter;
+    
+    private string wordFromFile;
+    private string[] blankArray;
     private char[] stringCharArray;
-    private int playerGuessesLeft = 6;
     private char LastSelectedCharacter;
-
+    private int chosenWordLength = 1;
+    private int playerGuessesLeft = 6;
+    private bool inputIsAllowed = false;
     private bool gameIsRunning = false;
-    //declare the size after we set the game up
+    #endregion
     #region start n update
     // Start is called before the first frame update
     void Start()
@@ -37,7 +47,9 @@ public class HangmanGame : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Counters[0].text = playerGuessesLeft.ToString() + " guesses left";
+        //updates the guess amount and the failed letters array to the screen
+        playerGuessCounter.text = playerGuessesLeft.ToString() + " guesses left";
+        usedLetters.text = string.Join(", ", failedLetters);
         if (gameIsRunning)
         {
             LastSelectedKey();
@@ -77,6 +89,8 @@ public class HangmanGame : MonoBehaviour
         //gives us an array of the chars
         stringCharArray = wordFromFile.ToCharArray();
         Debug.Log(wordFromFile);
+        playerGuessesLeft = 12;
+        inputIsAllowed = true;
     }
     void GuessStringSetup()
     {
@@ -90,7 +104,7 @@ public class HangmanGame : MonoBehaviour
 
     }
     #endregion
-
+    #region Game State Management
     //manages the state of the sprite display
     void SpriteStateManager()
     {
@@ -105,11 +119,12 @@ public class HangmanGame : MonoBehaviour
     //bool to check if the guess was a letter in the string
     bool CheckIfLetterIsInString(char guessChar)
     {
+        //Debug.Log(string.Join(" ", stringCharArray));
         for (int i = 0; i < chosenWordLength ; i++)
         {
             if (stringCharArray[i] == guessChar)
             {
-                
+                //Debug.Log("returns true");
                 return true;
             }
         }
@@ -118,55 +133,100 @@ public class HangmanGame : MonoBehaviour
     }
     void LastSelectedKey()
     {
-        if (Input.anyKeyDown)
+        if (Input.anyKeyDown && inputIsAllowed)
         {
             char key = (char)Input.inputString[0];
             if (char.IsLetter(key) && char.IsLower(key))
             {
                 LastSelectedCharacter = key;
-                
+                //Debug.Log(LastSelectedCharacter);
             }
             PlayerResponse();
         }
     }
-
-
-
     void PlayerResponse()
     {
         //if the player slected a key, test if it isnt already in the fail list. if it isnt, see if it is in the string. if no,
         if (CheckIfLetterIsInString(LastSelectedCharacter) && !failedLetters.Contains(LastSelectedCharacter.ToString()))
         {
+            //checking every element in the original array to see if it contains the letter
             for (int i = 0; i < chosenWordLength; i++)
             {
                 if (stringCharArray[i] == LastSelectedCharacter)
                 {
+                    //check if the element contains a string version of the last selected character
                     blankArray[i] = LastSelectedCharacter.ToString();
+                    //join the array elements as text together
+                    textDisplay.text = string.Join(" ", blankArray);
+                    //see what i selected
+                    //Debug.Log(blankArray[i]);
                 }
             }
         }
         else if (failedLetters.Contains(LastSelectedCharacter.ToString()))
         {
+            //if the failed string contains a variable alreadt and a person choses it again, punish them cause i say so
             playerGuessesLeft--;
         }
         else
         {
+            //add the letter to the used letters list and deduct a player guess
             failedLetters.Add(LastSelectedCharacter.ToString());
             playerGuessesLeft--;
         }
         //usedLetters.text = string.Join(", ", failedLetters);
+        WinOrLose();
     }
-# region buttons
+#endregion
+    void WinOrLose()
+    {
+        //for testing to try and figure out why i couldnt get a true statement for comparing the arrays
+        //Debug.Log(String.Join("", blankArray) == String.Join("", stringCharArray));
+        //Debug.Log(blankArray.ToString());
+        //Debug.Log(stringCharArray.ToString());
+
+
+
+
+        //compare the 2 strings, and if they are correct perform the win condition
+        if ( playerGuessesLeft == 0)
+        {
+            //display the lose panel and turn off input 
+            EndOfGamePanel(false);
+            inputIsAllowed = false;
+        }
+        if (String.Join("", blankArray) == String.Join("", stringCharArray))
+        {
+            //turn on the win screen and turn off input.
+            EndOfGamePanel(true);
+            inputIsAllowed = false;
+        }
+    }
+
+    void EndOfGamePanel(bool playerWins)
+    {
+        if(playerWins)
+        {
+
+        }
+        else
+        {
+
+        }
+    }
+    # region buttons
     public void Startbutton()
     {
-        //turn panel 1 off
+        //turn panel 1 off and start the game
         gamePanels[0].SetActive(false);
         gameIsRunning = true;
     }
 
     public void Restartbutton()
     {
-
+        //run the setup commands for the game
+        SettheScene();
+        GuessStringSetup();
     }
 
     public void Quitbutton()
