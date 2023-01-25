@@ -21,9 +21,11 @@ public class HangmanGame : MonoBehaviour
     [SerializeField] private TextMeshProUGUI textDisplay;
     [SerializeField] private TextMeshProUGUI playerGuesses;
     [SerializeField] private TextMeshProUGUI usedLetters;
+    [SerializeField] private TextMeshProUGUI endOfGameResponse;
+    
     
     private List <string> failedLetters = new List<string>();
-    [SerializeField] private GameObject[] gamePanels = new GameObject[2];
+    [SerializeField] private GameObject[] gamePanels = new GameObject[3];
     [SerializeField] private Button[] ConditionalButtons;
     [SerializeField] private TextMeshProUGUI playerGuessCounter;
     
@@ -105,17 +107,6 @@ public class HangmanGame : MonoBehaviour
     }
     #endregion
     #region Game State Management
-    //manages the state of the sprite display
-    void SpriteStateManager()
-    {
-        //manages the sprints based ona state machine
-        switch (playerGuessesLeft)
-        {
-            //case 0:
-            //set the sprite to be the first sprite
-        }
-    }
-
     //bool to check if the guess was a letter in the string
     bool CheckIfLetterIsInString(char guessChar)
     {
@@ -207,11 +198,18 @@ public class HangmanGame : MonoBehaviour
     {
         if(playerWins)
         {
+            gamePanels[2].SetActive(true);
+            Image img = gamePanels[2].GetComponent<Image>();
+            img.color = UnityEngine.Color.green;
+            endOfGameResponse.text = $"You Won! \n with {playerGuessesLeft} \n guesses left";
 
         }
         else
         {
-
+            gamePanels[2].SetActive(true);
+            Image img = gamePanels[2].GetComponent<Image>();
+            img.color = UnityEngine.Color.red;
+            endOfGameResponse.text = $"You Lost! \n please retry";
         }
     }
     # region buttons
@@ -227,6 +225,7 @@ public class HangmanGame : MonoBehaviour
         //run the setup commands for the game
         SettheScene();
         GuessStringSetup();
+        gamePanels[2].SetActive(false);
     }
 
     public void Quitbutton()
